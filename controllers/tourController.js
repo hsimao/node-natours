@@ -4,13 +4,24 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 );
 
-// 檢查 id 方法，exports 出去讓 router.param 中間件接著使用
+// 檢查 id 方法
 exports.checkID = (req, res, next, id) => {
   console.log(`Tour id is: ${id}`);
   if (req.params.id * 1 > tours.length) {
     return res.status(404).json({
       status: 'fail',
       message: '無效的id'
+    });
+  }
+  next();
+};
+
+// 檢查 body 方法
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    return res.status(400).json({
+      status: 'fail',
+      message: '沒有傳遞 name or price'
     });
   }
   next();
