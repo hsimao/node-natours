@@ -5,6 +5,7 @@ const app = express();
 // Middlewares 中間件
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(express.static(`${__dirname}/public`));
 
 // 將每個請求加上時間
 app.use((req, res, next) => {
