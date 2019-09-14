@@ -82,7 +82,8 @@ dist
 
 /產品圖片
 
-/config
+# /config
+*.env
 
 pm2-cluster-sample.json
 
