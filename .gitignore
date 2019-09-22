@@ -88,3 +88,5 @@ dist
 pm2-cluster-sample.json
 
 pm2-fork-sample.json
+
+.vscode
