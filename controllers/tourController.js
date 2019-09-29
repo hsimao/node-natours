@@ -29,6 +29,17 @@ exports.getAllTours = async (req, res) => {
       query = query.sort('-createdAt');
     }
 
+    // 4.) 指定回傳顯示欄位 fields
+    if (req.query.fields) {
+      // 原本 price,ratingsAverage
+      // 改成 price ratingsAverage
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      // 過濾掉 mongo 自動產生的 __v 屬性資料
+      query = query.select('-__v');
+    }
+
     const tours = await query;
 
     res.status(200).json({

@@ -54,7 +54,8 @@ const tourSchema = new mongoose.Schema({
   images: [String],
   createdAt: {
     type: Date,
-    default: Date.now()
+    default: Date.now(),
+    select: false // 資料回傳時不顯示此欄位
   },
   // 旅行開始時間
   startDates: [Date]
