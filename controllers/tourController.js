@@ -16,13 +16,20 @@ exports.getAllTours = async (req, res) => {
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
     console.log(JSON.parse(queryStr));
 
-    const tours = await Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
 
-    // const tours = await Tour.find()
-    //   .where('duration')
-    //   .equals(5)
-    //   .where('difficulty')
-    //   .equals('easy');
+    // 3.) 排序
+    if (req.query.sort) {
+      // 重組多個 sort 判斷網址
+      // 原本 price,ratingsAverage
+      // 改成 -price ratingsAverage
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    const tours = await query;
 
     res.status(200).json({
       status: 'success',
