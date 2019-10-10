@@ -1,5 +1,13 @@
 const Tour = require('./../models/tourModel');
 
+// 取得前五個最便宜行程 中間件
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name, price, ratingsAverage, summary, difficulty';
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
     // 1.) 過濾 query: 刪除需另外處理的 query 參數, 例如 分頁、排序、資料筆數上限
