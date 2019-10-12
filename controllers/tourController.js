@@ -18,7 +18,6 @@ exports.getAllTours = async (req, res) => {
       .paginate();
 
     const tours = await features.query;
-
     res.status(200).json({
       status: 'success',
       results: tours.length,
@@ -98,6 +97,55 @@ exports.deleteTour = async (req, res) => {
     res.status(204).json({
       status: 'success',
       data: null
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err
+    });
+  }
+};
+
+// mongo 高級查詢 聚合
+// 找到評價符合大於或等於 4.5 的資料
+// 分類資料, 並算出總數、平均評價、價格, 與最便宜與最貴的價格等..
+exports.getTourStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      // 過濾: 找到評價符合大於或等於 4.5 的
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } }
+      },
+      // 資料分組, 針對符合上方的所有資料組出一個 group
+      // 高級用法, 針對困難度分組, 將 difficulty 寫入 _id 內, mongo 將自動分組統計
+      {
+        $group: {
+          // _id: null, // _id 設定為 null 將不分組, 會依據上方 match 資料回傳一包以下分析資料
+          // _id: '$difficulty',
+          _id: { $toUpper: '$difficulty' }, // 使用 $toUpper, 可將名稱全轉大寫
+          numTours: { $sum: 1 }, // 統計資料總筆數
+          numRatings: { $sum: '$ratingsAverage' }, // 評價加總
+          avgRating: { $avg: '$ratingsAverage' }, // 平均評價
+          avgPrice: { $avg: '$price' }, // 平均價格
+          minPrice: { $min: '$price' }, // 最便宜價格
+          maxPrice: { $max: '$price' } // 最貴價格
+        }
+      },
+      // 排列, 依據平均價格排序, (小 > 大)
+      {
+        $sort: { avgPrice: 1 }
+      },
+
+      // 第二個過濾, 將上方搜尋完結果, 排除掉 困難度為 easy 的分類
+      // $ne => Not Equal, 不等於
+      {
+        $match: { _id: { $ne: 'EASY' } }
+      }
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: stats
     });
   } catch (err) {
     res.status(404).json({

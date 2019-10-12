@@ -12,6 +12,8 @@ Router.route('/top-5-cheap').get(
   tourController.getAllTours
 );
 
+Router.route('/tour-stats').get(tourController.getTourStats);
+
 Router.route('/')
   .get(tourController.getAllTours)
   .post(tourController.createTour);
