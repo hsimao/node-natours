@@ -49,7 +49,17 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a price']
     },
     // 優惠價
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      // 自訂驗證, 優惠價需要小於原價
+      validate: {
+        validator: function(val) {
+          // 此驗證只在新增時有作用, 在更新時無效, this 會無法抓到原本的 price
+          return val < this.price;
+        },
+        message: 'Discount price ({VALUE}) should be below regular price'
+      }
+    },
     // 摘要
     summary: {
       type: String,
