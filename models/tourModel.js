@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { slugify } = require('transliteration');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -8,6 +9,7 @@ const tourSchema = new mongoose.Schema(
       unique: true,
       trim: true
     },
+    slug: String,
     // 持續時間
     duration: {
       type: Number,
@@ -73,6 +75,20 @@ const tourSchema = new mongoose.Schema(
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
+
+// document middleware 中間件
+// [pre] 當 mongo 執行 .save() .create() [之前]觸發
+// 在儲存 tour 資料之前, 自動將 name 轉成網址, 並儲存到 slug 屬性內
+tourSchema.pre('save', function(next) {
+  this.slug = slugify(this.name, { lowercase: true });
+  next();
+});
+
+// // [post] 當 mongo 執行 .save() .create() 儲存完資料[之後]觸發
+// tourSchema.post('save', function(doc, next) {
+//   console.log('儲存成功');
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 
