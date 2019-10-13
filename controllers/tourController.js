@@ -154,3 +154,67 @@ exports.getTourStats = async (req, res) => {
     });
   }
 };
+
+// 計算某年的每個月的行程數量
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1;
+
+    const plan = await Tour.aggregate([
+      // $unwind, 依據 startDates 資料筆數, 對應複製出多個物件整包資料
+      {
+        $unwind: '$startDates'
+      },
+      // 依據 year 年份過濾出資料 2021-01-01 ~ 2021-12-31
+      {
+        $match: {
+          startDates: {
+            // 大於或等於 2021-01-01
+            $gte: new Date(`${year}-01-01`),
+            // 小於或等於 2021-12-31
+            $lte: new Date(`${year}-12-31`)
+          }
+        }
+      },
+      // 依據月份分組
+      {
+        $group: {
+          // 使用 $month, 可自動找出相同月份資料
+          _id: { $month: '$startDates' },
+          // 該月份行程數量
+          numTourStarts: { $sum: 1 },
+          // 顯示該月份所有行程的名稱與價格, 使用 $push, 陣列呈現
+          tours: { $push: { name: '$name', price: '$price' } }
+        }
+      },
+      // 新增月份資料欄位
+      {
+        $addFields: { month: '$_id' }
+      },
+      // 使用 $project 指定要顯示或隱藏某欄位, 以下隱藏(0 / false) _id
+      {
+        $project: { _id: 0 }
+      },
+      // 依據每月行程數量排序 (大 > 小)
+      {
+        $sort: { numTourStarts: -1 }
+      },
+      {
+        $limit: 12
+      }
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      results: plan.length,
+      data: {
+        plan
+      }
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err
+    });
+  }
+};
