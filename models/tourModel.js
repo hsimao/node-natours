@@ -7,7 +7,9 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: [true, 'A tour must have a name'],
       unique: true,
-      trim: true
+      trim: true,
+      maxlength: [40, 'A tour name must have less or equal then 40 characters'],
+      minlength: [2, 'A tour name must have more or equal then 2 characters']
     },
     slug: String,
     // 持續時間
@@ -23,12 +25,19 @@ const tourSchema = new mongoose.Schema(
     // 困難度
     difficulty: {
       type: String,
-      required: [true, 'A tour must have a difficulty']
+      required: [true, 'A tour must have a difficulty'],
+      // 困難度僅能接收以下三個字串其一 'easy', 'medium', 'difficult'
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either: easy, medium, difficult'
+      }
     },
     // 平均評價分數
     ratingsAverage: {
       type: Number,
-      default: 4.5
+      default: 4.5,
+      min: [1, 'Rating must be above 1'],
+      max: [5, 'Rating must below 5.0']
     },
     // 評價數量
     ratingsQuantity: {

@@ -73,7 +73,7 @@ exports.updateTour = async (req, res) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-      runValidators: true
+      runValidators: true // 啟用在 model 設置的驗證功能
     });
 
     res.status(200).json({
