@@ -80,7 +80,8 @@ tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
 
-// document middleware 中間件
+// == mongo 中間件 ==
+// document 中間件
 // [pre] 當 mongo 執行 .save() .create() [之前]觸發
 // 在儲存 tour 資料之前, 自動將 name 轉成網址, 並儲存到 slug 屬性內
 tourSchema.pre('save', function(next) {
@@ -94,12 +95,12 @@ tourSchema.pre('save', function(next) {
 //   next();
 // });
 
-// Query middleware 查詢中間件
+// Query 查詢中間件
 // 應用場景: 某些秘密行長不能被用查詢查到
 // 除了 find 方法之外 findOne 也要預防, 使用正規表達式 find 開頭的都執行
 tourSchema.pre(/^find/, function(next) {
   // 新增一個 mongo query, 只要找到 secretTour 不等於 true 的資料
-  this.find({ secretTour: { $ne: true } });
+  // this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
   next();
 });
@@ -107,6 +108,14 @@ tourSchema.pre(/^find/, function(next) {
 // 搜尋完之後觸發, 可以跟 pre 搭配來計算出搜尋時間
 tourSchema.post(/^find/, function(docs, next) {
   console.log(`搜尋時間: ${Date.now() - this.start} 毫秒`);
+  next();
+});
+
+// aggregate 聚合中間件
+tourSchema.pre('aggregate', function(next) {
+  // 使用 unshift 將以下 match 方法放在 pipeline 最前面
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
   next();
 });
 
