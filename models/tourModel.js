@@ -61,7 +61,11 @@ const tourSchema = new mongoose.Schema(
       select: false // 資料回傳時不顯示此欄位
     },
     // 旅行開始時間
-    startDates: [Date]
+    startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false
+    }
   },
   // 設定使用虛擬屬性
   {
@@ -89,6 +93,22 @@ tourSchema.pre('save', function(next) {
 //   console.log('儲存成功');
 //   next();
 // });
+
+// Query middleware 查詢中間件
+// 應用場景: 某些秘密行長不能被用查詢查到
+// 除了 find 方法之外 findOne 也要預防, 使用正規表達式 find 開頭的都執行
+tourSchema.pre(/^find/, function(next) {
+  // 新增一個 mongo query, 只要找到 secretTour 不等於 true 的資料
+  this.find({ secretTour: { $ne: true } });
+  this.start = Date.now();
+  next();
+});
+
+// 搜尋完之後觸發, 可以跟 pre 搭配來計算出搜尋時間
+tourSchema.post(/^find/, function(docs, next) {
+  console.log(`搜尋時間: ${Date.now() - this.start} 毫秒`);
+  next();
+});
 
 const Tour = mongoose.model('Tour', tourSchema);
 
