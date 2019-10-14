@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 
 // 取得前五個最評價最好的便宜行程 中間件
 exports.aliasTopTours = (req, res, next) => {
@@ -31,6 +32,9 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 exports.getTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findById(req.params.id);
 
+  // 自訂 error 未找到
+  if (!tour) return next(new AppError('No tour found with that ID'), 404);
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -56,6 +60,9 @@ exports.updateTour = catchAsync(async (req, res, next) => {
     runValidators: true // 啟用在 model 設置的驗證功能
   });
 
+  // 自訂 error 未找到
+  if (!tour) return next(new AppError('No tour found with that ID'), 404);
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -65,7 +72,10 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
-  await Tour.findByIdAndDelete(req.params.id);
+  const tour = await Tour.findByIdAndDelete(req.params.id);
+
+  // 自訂 error 未找到
+  if (!tour) return next(new AppError('No tour found with that ID'), 404);
 
   res.status(204).json({
     status: 'success',
