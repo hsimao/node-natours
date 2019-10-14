@@ -1,5 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
+
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
+
 const app = express();
 
 // Middlewares 中間件
@@ -24,10 +28,10 @@ app.use('/api/v1/tours', tourRouter);
 
 // 未定義 route handle
 app.all('*', (req, res, next) => {
-  res.status(404).json({
-    status: 'fail',
-    message: `Can't find ${req.originalUrl} on this server!`
-  });
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
+
+// express error 中間件
+app.use(globalErrorHandler);
 
 module.exports = app;
