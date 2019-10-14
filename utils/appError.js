@@ -1,3 +1,4 @@
+// error handle 錯誤處理封裝
 class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
