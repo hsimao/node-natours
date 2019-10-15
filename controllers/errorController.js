@@ -1,9 +1,16 @@
 const AppError = require('./../utils/appError');
 
-// handle mongoDB error
+// 無效 id - handle mongoDB error
 const handleCastErrorDB = err => {
   // 無效 id
   const message = `Invalid ${err.path}: ${err.value}`;
+  return new AppError(message, 400);
+};
+
+// 重複名稱 - handle mongoDB error
+const handleDuplicateFieldsDB = err => {
+  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };
 
@@ -46,8 +53,13 @@ module.exports = (err, req, res, next) => {
     sendErrorDev(err, res);
   } else {
     let error = { ...err };
+
     // handle mongoDB error
+    // 無效 id
     if (error.name === 'CastError') error = handleCastErrorDB(error);
+    // 重複名稱
+    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+
     sendErrorProd(error, res);
   }
 };
