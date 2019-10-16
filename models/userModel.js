@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,8 +22,28 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    required: [true, 'Please confirm your password']
+    required: [true, 'Please confirm your password'],
+    validate: {
+      validator: function(el) {
+        // 此驗證只在新增時有作用, 在更新時無效, this 會無法抓到原本的 password
+        return el === this.password;
+      },
+      message: 'Passwords are not the same!'
+    }
   }
+});
+
+// 儲存 user 資料前先加密密碼
+userSchema.pre('save', async function(next) {
+  // 如果 password 沒有修改過, 就返回不重新加密
+  if (!this.isModified('password')) return next();
+
+  this.password = await bcrypt.hash(this.password, 12);
+
+  // 不儲存 passwordConfirm 到資料庫
+  this.passwordConfirm = undefined;
+
+  next();
 });
 
 const User = mongoose.model('User', userSchema);
