@@ -22,6 +22,16 @@ mongoose
 
 // Start server
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App start on port ${port}...`);
+});
+
+// 全域監聽事件 - 處理未 handle 的 promise 錯誤 (Unhandled promise rejection)
+process.on('unhandledRejection', err => {
+  console.log(err.name, err.message);
+  console.log('Unhandler Rejection! Shutting down...');
+  // 將 server 關閉
+  server.close(() => {
+    process.exit(1); // 0 表示成功, 1 表示失敗
+  });
 });
