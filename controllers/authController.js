@@ -54,3 +54,22 @@ exports.login = catchAsync(async (req, res, next) => {
     token
   });
 });
+
+// 驗證權限中間件
+exports.protect = catchAsync(async (req, res, next) => {
+  // 1.)  取得 token, 從 headers
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token)
+    return next(
+      new AppError('You are not logged in! Please log in to get access.', 401)
+    );
+
+  next();
+});
