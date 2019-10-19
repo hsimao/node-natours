@@ -1,3 +1,4 @@
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -16,7 +17,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm
+    passwordConfirm: req.body.passwordConfirm,
+    passwordChangedAt: req.body.passwordChangedAt
   });
 
   const token = signToken(newUser._id);
@@ -55,7 +57,7 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
-// 驗證權限中間件
+// 驗證權限中間件, 保護需要登入才能查看的 route
 exports.protect = catchAsync(async (req, res, next) => {
   // 1.)  取得 token, 從 headers
   let token;
@@ -71,5 +73,28 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('You are not logged in! Please log in to get access.', 401)
     );
 
+  // 2.) 驗證 token, 取出解碼完的 user id
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // 3.) 檢查用戶是否存在, token 有效的這段期間, 如果用戶從資料庫已刪除, 將不可訪問
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(
+      new AppError(
+        'The user belonging to this token does on longer exist.',
+        401
+      )
+    );
+  }
+
+  // 4.) 檢查用戶是否有改密碼, 在當前 token 產生之後, 有就需要請用戶重新登入
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please login again.', 401)
+    );
+  }
+
+  // 永許用戶訪問受保護 route
+  req.user = currentUser;
   next();
 });
