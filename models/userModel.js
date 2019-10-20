@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -38,7 +39,9 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!'
     }
   },
-  passwordChangedAt: Date
+  passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date
 });
 
 // 儲存 user 資料前先加密密碼
@@ -72,6 +75,26 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
     return JWTTimestamp < changedTimestamp;
   }
   return false;
+};
+
+// 生成用戶重置密碼 token, crypto 是 node 內建的加密方法
+userSchema.methods.createPasswordResetToken = function() {
+  // 1.) 使用 crypto 生成 token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // 2.) 將 token 加密儲存到用戶資料庫
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  // 3.) token 有效期限為 10 分鐘
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  // 4.) 回傳未加密 resetToken
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);

@@ -115,3 +115,19 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
+
+// 忘記密碼, 寄送出重置密碼的 email
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  // 1.)依據 email 找出用戶資料
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with email address.', 404));
+  }
+
+  // 2.) 生成重置密碼 token
+  const resetToken = user.createPasswordResetToken();
+  // 儲存 createPasswordResetToken 的 mongo methods 創建要儲存到用戶資料庫的 token 跟期限
+  await user.save({ validateBeforeSave: false });
+
+  // 3.) 送出修改密碼 token 到用戶 email
+});
