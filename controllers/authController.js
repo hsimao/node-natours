@@ -13,12 +13,16 @@ const signToken = id => {
 
 // 註冊
 exports.signup = catchAsync(async (req, res, next) => {
+  // prettier-ignore
+  const { name, email, role, password, passwordConfirm, passwordChangedAt } = req.body
+
   const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    passwordChangedAt: req.body.passwordChangedAt
+    name,
+    email,
+    role,
+    password,
+    passwordConfirm,
+    passwordChangedAt
   });
 
   const token = signToken(newUser._id);
@@ -98,3 +102,16 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+
+// 驗證權限身份, 當下登入者身份 role 如未符合 roles 傳遞進來的身份, 將返回
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    // roles ['admin', 'lead-guide']
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('Yo do not have permission to perform this action', 403)
+      );
+    }
+    next();
+  };
+};
