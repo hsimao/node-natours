@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please confirm your password'],
     validate: {
       validator: function(el) {
-        // 此驗證只在新增時有作用, 在更新時無效, this 會無法抓到原本的 password
+        // 此驗證只在新增時有作用, 在更新時無效(不能使用 findByIdAndUpdate 來更新資料), this 會無法抓到原本的 password
         return el === this.password;
       },
       message: 'Passwords are not the same!'

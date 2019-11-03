@@ -13,6 +13,18 @@ const signToken = id => {
   });
 };
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user: user
+    }
+  });
+};
+
 // 註冊
 exports.signup = catchAsync(async (req, res, next) => {
   // prettier-ignore
@@ -27,15 +39,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordChangedAt
   });
 
-  const token = signToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser
-    }
-  });
+  createSendToken(newUser, 201, res);
 });
 
 // 登入
@@ -55,12 +59,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  const token = signToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+  createSendToken(user, 200, res);
 });
 
 // 驗證權限中間件, 保護需要登入才能查看的 route
@@ -191,10 +190,25 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // 已在 models/userModel.js mongo 中間件自動處理
 
   // 4.) 登入, 並發送一組新的 jwt
-  const token = signToken(user._id);
+  createSendToken(user, 200, res);
+});
 
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+// 更新密碼
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1.) 從資料庫取得用戶
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2.) 驗證密碼是否正確
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong.', 401));
+  }
+  // 3.) 更新密碼
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  // User.findByIdAndUpdate 會無法使用 mongo models 自訂的 passwordConfirm 驗證功能, 以及 mongo save 中間件內的密碼加密功能
+  // 所以要用 user.save() 方式來更新用戶資料
+  await user.save();
+
+  // 4.) 登入, 並發送一組新的 jwt
+  createSendToken(user, 200, res);
 });
