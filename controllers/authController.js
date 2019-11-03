@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
@@ -155,11 +156,45 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     return next(
-      new AppError('There was an error sending the email. Try again later!'),
-      500
+      new AppError(
+        'There was an error sending the email. Try again later!',
+        500
+      )
     );
   }
 });
 
 // 重置密碼
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1.) 取得 token, 並加密 (用來跟資料庫加密過的 token 比對)
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  // 2.) 使用 token 來搜尋用戶, 直接搜尋符合 token 並且尚未過期
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  // 2.) 如果有該用戶且 resetPassword token 沒有過期, 就重置新密碼
+  if (!user) return next(new AppError('Token in invalid or has expired', 400));
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  // 3.) 更新 passwordChangedAt 時間
+  // 已在 models/userModel.js mongo 中間件自動處理
+
+  // 4.) 登入, 並發送一組新的 jwt
+  const token = signToken(user._id);
+
+  res.status(200).json({
+    status: 'success',
+    token
+  });
+});

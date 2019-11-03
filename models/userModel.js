@@ -57,6 +57,17 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
+// 當密碼更新時, 自動更新 passwordChangedAt 時間
+userSchema.pre('save', function(next) {
+  // 如果 password 沒有修改過, 或是新註冊的用戶就返回
+  if (!this.isModified('password') || this.isNew) return next();
+
+  // 需注意, 因為保護路由中間間有判斷用戶是否有修改密碼, 並比對 token 產生時間,
+  // 因為 token 產生比較慢, 所以這邊直接將修改密碼時間扣除一秒, 讓上方判斷需要用戶重登入的機會降低一些
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
 //  解碼後判斷用戶密碼是否正確
 userSchema.methods.correctPassword = async function(
   candidatePassword,
