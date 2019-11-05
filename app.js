@@ -1,13 +1,18 @@
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
-// Global Middlewares 中間件
+// == Global Middlewares 中間件
+// 設置安全 HTTP headers
+app.use(helmet());
+
+// 開發模式啟用 log
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -21,7 +26,8 @@ const limiter = rateLimit({
 // 僅在 /api 路由套用此限制
 app.use('/api', limiter);
 
-app.use(express.json());
+// 解析 body parser, 設置限制請求 body 不可大於 10kb
+app.use(express.json({ limit: '10kb' }));
 app.use(express.static(`${__dirname}/public`));
 
 // 將每個請求加上時間
