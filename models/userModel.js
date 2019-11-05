@@ -41,7 +41,12 @@ const userSchema = new mongoose.Schema({
   },
   passwordChangedAt: Date,
   passwordResetToken: String,
-  passwordResetExpires: Date
+  passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false
+  }
 });
 
 // 儲存 user 資料前先加密密碼
@@ -65,6 +70,12 @@ userSchema.pre('save', function(next) {
   // 需注意, 因為保護路由中間間有判斷用戶是否有修改密碼, 並比對 token 產生時間,
   // 因為 token 產生比較慢, 所以這邊直接將修改密碼時間扣除一秒, 讓上方判斷需要用戶重登入的機會降低一些
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+// 搜尋中間件, mongo 使用 find 開頭的查詢方法都需要過濾掉 active: false 的用戶
+userSchema.pre(/^find/, function(next) {
+  this.find({ active: { $ne: false } });
   next();
 });
 

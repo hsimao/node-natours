@@ -24,6 +24,16 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+// 停用帳號
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+});
+
 // 更新當前用戶資料
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1.) 如果有密碼參數就返回
