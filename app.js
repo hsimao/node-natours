@@ -2,6 +2,8 @@ const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -28,6 +30,13 @@ app.use('/api', limiter);
 
 // 解析 body parser, 設置限制請求 body 不可大於 10kb
 app.use(express.json({ limit: '10kb' }));
+
+// 數據清理, 防止惡意 nosql query 注入, 例如 	"email": { "$gt": "" }
+app.use(mongoSanitize());
+
+// 防止 xss, 將標籤語法轉換 <script></script> => "&lt;script>&lt;/script>"
+app.use(xss());
+
 app.use(express.static(`${__dirname}/public`));
 
 // 將每個請求加上時間
