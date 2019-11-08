@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -36,6 +37,21 @@ app.use(mongoSanitize());
 
 // 防止 xss, 將標籤語法轉換 <script></script> => "&lt;script>&lt;/script>"
 app.use(xss());
+
+// 防止參數污染, 例如相同 query 參數重複, 兩個 sort => ?sort=duration&sort=price
+app.use(
+  hpp({
+    // 允許可以重複出現的 query 參數, 例如 ?price=400&price=500
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price'
+    ]
+  })
+);
 
 app.use(express.static(`${__dirname}/public`));
 
