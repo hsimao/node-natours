@@ -20,9 +20,7 @@ mongoose
   .then(() => console.log('DB conection successful!'));
 
 // 抓取 json 資料
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 // 將本地 json 檔案資料儲存到資料庫
 const importData = async () => {
