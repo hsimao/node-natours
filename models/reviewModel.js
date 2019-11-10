@@ -24,20 +24,16 @@ const reviewSchema = new mongoose.Schema(
       type: Date,
       default: Date.now()
     },
-    tour: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Tour',
-        required: [true, 'Review must belong to a tour.']
-      }
-    ],
-    user: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: [true, 'Review must belong to a user.']
-      }
-    ]
+    tour: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Tour',
+      required: [true, 'Review must belong to a tour.']
+    },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: [true, 'Review must belong to a user.']
+    }
   },
   // 設定使用虛擬屬性
   {
@@ -45,6 +41,20 @@ const reviewSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 );
+
+// mongo 中間件
+// 所有搜尋評論的 query 使用 populate 顯示關聯的 tour, user 資料
+reviewSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'tour',
+    select: 'name'
+  }).populate({
+    path: 'user',
+    select: 'name photo'
+  });
+
+  next();
+});
 
 const Review = mongoose.model('Review', reviewSchema);
 
