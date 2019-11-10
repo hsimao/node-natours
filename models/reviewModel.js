@@ -1,6 +1,6 @@
 //  評論 review 資料結構
 // 1.) review
-// 2.) ratting 評分
+// 2.) rating 評分
 // 3.) createdAt 創建時間
 // 4.) 關聯 Tour
 // 5.) 關聯 User
@@ -15,10 +15,10 @@ const reviewSchema = new mongoose.Schema(
       maxlength: [300, 'A review must have less or equal then 300 characters'],
       minlength: [2, 'A review must have more or equal then 2 characters']
     },
-    ratting: {
+    rating: {
       type: Number,
-      min: [1, 'Ratting must be above 1'],
-      max: [5, 'Ratting must below 5.0']
+      min: [1, 'Rating must be above 1'],
+      max: [5, 'Rating must below 5.0']
     },
     createdAt: {
       type: Date,
