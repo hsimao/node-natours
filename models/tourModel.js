@@ -156,12 +156,22 @@ tourSchema.pre('save', function(next) {
 // });
 
 // Query 查詢中間件
-// 應用場景: 某些秘密行長不能被用查詢查到
+// 應用場景: 某些秘密行程不能被用查詢查到
 // 除了 find 方法之外 findOne 也要預防, 使用正規表達式 find 開頭的都執行
 tourSchema.pre(/^find/, function(next) {
   // 新增一個 mongo query, 只要找到 secretTour 不等於 true 的資料
-  // this.find({ secretTour: { $ne: true } });
+  this.find({ secretTour: { $ne: true } });
+
   this.start = Date.now();
+  next();
+});
+
+// 所有 find query 使用 populate 顯示關聯的 guides 完整 user 資料, 並過濾掉 __v, passwordChangedAt
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  });
   next();
 });
 
