@@ -85,6 +85,7 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    // 嵌入式 少量級關聯模式 (Embedding)
     startLocation: {
       // GeoJSON 格式
       type: {
@@ -96,6 +97,7 @@ const tourSchema = new mongoose.Schema(
       address: String,
       description: String
     },
+    // 嵌入式 少量級關聯模式 (Embedding)
     locations: [
       {
         // GeoJSON 格式
