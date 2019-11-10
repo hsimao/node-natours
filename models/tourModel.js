@@ -111,6 +111,13 @@ const tourSchema = new mongoose.Schema(
         description: String,
         day: Number
       }
+    ],
+    // 導遊, 存放關聯用戶 id
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
     ]
   },
   // 設定使用虛擬屬性
@@ -134,6 +141,13 @@ tourSchema.pre('save', function(next) {
   this.slug = slugify(this.name, { lowercase: true });
   next();
 });
+
+// == 嵌入式範例中間件 start == 每次儲存時對 guides 的用戶 id 進行搜尋, 並將用戶完整資料嵌入到 tours 內
+// tourSchema.pre('save', async function(next) {
+//   const guidesPromises = this.guides.map(async id => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+// });
+// == 嵌入式範例中間件 end ==
 
 // // [post] 當 mongo 執行 .save() .create() 儲存完資料[之後]觸發
 // tourSchema.post('save', function(doc, next) {
