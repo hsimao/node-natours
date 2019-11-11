@@ -43,12 +43,9 @@ const reviewSchema = new mongoose.Schema(
 );
 
 // mongo 中間件
-// 所有搜尋評論的 query 使用 populate 顯示關聯的 tour, user 資料
+// 所有搜尋評論的 query 使用 populate 顯示關聯的 user 資料
 reviewSchema.pre(/^find/, function(next) {
   this.populate({
-    path: 'tour',
-    select: 'name'
-  }).populate({
     path: 'user',
     select: 'name photo'
   });

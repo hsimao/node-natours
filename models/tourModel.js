@@ -133,6 +133,14 @@ tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
 
+// 虛擬填充該 tour 底下的所有評論, 不將所有評論 id 儲存到資料庫
+// 在 tour 搜尋時使用 .populate('reviews') 即可顯示關聯的評論資訊
+tourSchema.virtual('reviews', {
+  ref: 'Review', // 關聯評論 model
+  foreignField: 'tour', // 評論 model 內的 tour
+  localField: '_id' // tour 本身的 id
+});
+
 // == mongo 中間件 ==
 // document 中間件
 // [pre] 當 mongo 執行 .save() .create() [之前]觸發
