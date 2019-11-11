@@ -75,10 +75,6 @@ exports.createUser = (req, res) => {
   });
 };
 
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error'
-  });
-};
-
+// 不可在此路由更新用戶密碼
+exports.updateUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
