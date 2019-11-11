@@ -1,6 +1,6 @@
 const Review = require('./../models/reviewModel');
 const catchAsync = require('./../utils/catchAsync');
-const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
 
 // 取得所有評論
 exports.getAllReviews = catchAsync(async (req, res, next) => {
@@ -33,3 +33,5 @@ exports.createReview = catchAsync(async (req, res, next) => {
     }
   });
 });
+
+exports.deleteReview = factory.deleteOne(Review);

@@ -2,6 +2,7 @@ const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
 
 // 取得前五個最評價最好的便宜行程 中間件
 exports.aliasTopTours = (req, res, next) => {
@@ -71,17 +72,7 @@ exports.updateTour = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-
-  // 自訂 error 未找到
-  if (!tour) return next(new AppError('No tour found with that ID'), 404);
-
-  res.status(204).json({
-    status: 'success',
-    data: null
-  });
-});
+exports.deleteTour = factory.deleteOne(Tour);
 
 // mongo 高級查詢 聚合
 // 找到評價符合大於或等於 4.5 的資料
