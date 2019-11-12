@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
+const isImport = process.argv[2] === '--import';
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -49,29 +51,33 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// 儲存 user 資料前先加密密碼
-userSchema.pre('save', async function(next) {
-  // 如果 password 沒有修改過, 就返回不重新加密
-  if (!this.isModified('password')) return next();
+// 如果是資料注入，就不觸發以下 mongo 中間件
+// 加密密碼(注入的密碼已經是加密), 跟觸發更新密碼時間功能 passwordChangedAt
+if (!isImport) {
+  // 儲存 user 資料前先加密密碼
+  userSchema.pre('save', async function(next) {
+    // 如果 password 沒有修改過, 就返回不重新加密
+    if (!this.isModified('password')) return next();
 
-  this.password = await bcrypt.hash(this.password, 12);
+    this.password = await bcrypt.hash(this.password, 12);
 
-  // 不儲存 passwordConfirm 到資料庫
-  this.passwordConfirm = undefined;
+    // 不儲存 passwordConfirm 到資料庫
+    this.passwordConfirm = undefined;
 
-  next();
-});
+    next();
+  });
 
-// 當密碼更新時, 自動更新 passwordChangedAt 時間
-userSchema.pre('save', function(next) {
-  // 如果 password 沒有修改過, 或是新註冊的用戶就返回
-  if (!this.isModified('password') || this.isNew) return next();
+  // 當密碼更新時, 自動更新 passwordChangedAt 時間
+  userSchema.pre('save', function(next) {
+    // 如果 password 沒有修改過, 或是新註冊的用戶就返回
+    if (!this.isModified('password') || this.isNew) return next();
 
-  // 需注意, 因為保護路由中間間有判斷用戶是否有修改密碼, 並比對 token 產生時間,
-  // 因為 token 產生比較慢, 所以這邊直接將修改密碼時間扣除一秒, 讓上方判斷需要用戶重登入的機會降低一些
-  this.passwordChangedAt = Date.now() - 1000;
-  next();
-});
+    // 需注意, 因為保護路由中間間有判斷用戶是否有修改密碼, 並比對 token 產生時間,
+    // 因為 token 產生比較慢, 所以這邊直接將修改密碼時間扣除一秒, 讓上方判斷需要用戶重登入的機會降低一些
+    this.passwordChangedAt = Date.now() - 1000;
+    next();
+  });
+}
 
 // 搜尋中間件, mongo 使用 find 開頭的查詢方法都需要過濾掉 active: false 的用戶
 userSchema.pre(/^find/, function(next) {
