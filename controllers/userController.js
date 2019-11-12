@@ -13,6 +13,13 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+// 取得自己的會員資料
+// 在 route 內使用中間件組合, 先將 user id 存放到 params.id, 在使用已封裝好的 getOne 方法取得資料
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
 // 停用帳號
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
