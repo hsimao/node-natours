@@ -9,10 +9,12 @@ const Router = express.Router({ mergeParams: true });
 // GET /tour/34333/reviews
 // POST /reviews
 
+// 在此中間件以下的 route 都需要經過登入驗證
+Router.use(authController.protect);
+
 Router.route('/')
   .get(reviewController.getAllReviews)
   .post(
-    authController.protect,
     authController.restrictTo('user'),
     reviewController.setTourUserIds,
     reviewController.createReview
@@ -20,7 +22,13 @@ Router.route('/')
 
 Router.route('/:id')
   .get(reviewController.getReview)
-  .patch(reviewController.updateReview)
-  .delete(reviewController.deleteReview);
+  .patch(
+    authController.restrictTo('user', 'admin'),
+    reviewController.updateReview
+  )
+  .delete(
+    authController.restrictTo('user', 'admin'),
+    reviewController.deleteReview
+  );
 
 module.exports = Router;

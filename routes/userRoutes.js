@@ -6,24 +6,19 @@ const Router = express.Router();
 
 Router.post('/signup', authController.signup);
 Router.post('/login', authController.login);
-
 Router.post('/forgotPassword', authController.forgotPassword);
 Router.patch('/resetPassword/:token', authController.resetPassword);
 
-Router.patch(
-  '/updateMyPassword',
-  authController.protect,
-  authController.updatePassword
-);
+// 在此中間件以下的 route 都需要經過登入驗證
+Router.use(authController.protect);
 
-Router.get(
-  '/me',
-  authController.protect,
-  userController.getMe,
-  userController.getUser
-);
-Router.patch('/updateMe', authController.protect, userController.updateMe);
-Router.delete('/deleteMe', authController.protect, userController.deleteMe);
+Router.patch('/updateMyPassword', authController.updatePassword);
+Router.get('/me', userController.getMe, userController.getUser);
+Router.patch('/updateMe', userController.updateMe);
+Router.delete('/deleteMe', userController.deleteMe);
+
+// 在此中間件以下的 route 身份需要是 admin
+Router.use(authController.restrictTo('admin'));
 
 Router.route('/')
   .get(userController.getAllUsers)
