@@ -63,18 +63,14 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error'
-  });
-};
-
 exports.createUser = (req, res) => {
   res.status(500).json({
-    status: 'error'
+    status: 'error',
+    message: 'This route is not defined! Please use /signup instead'
   });
 };
 
 // 不可在此路由更新用戶密碼
 exports.updateUser = factory.updateOne(User);
+exports.getUser = factory.getOne(User);
 exports.deleteUser = factory.deleteOne(User);
