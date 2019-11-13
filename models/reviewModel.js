@@ -5,6 +5,7 @@
 // 4.) 關聯 Tour
 // 5.) 關聯 User
 const mongoose = require('mongoose');
+const Tour = require('./tourModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -51,6 +52,34 @@ reviewSchema.pre(/^find/, function(next) {
   });
 
   next();
+});
+
+// 使用 mongo 靜態屬性 在每次新增評論時重新計算當下 tour 的評價筆數與平均分數
+reviewSchema.statics.calcAverageRatings = async function(tourId) {
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId }
+    },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 }, // 評價筆數
+        avgRating: { $avg: '$rating' } // 平均分數
+      }
+    }
+  ]);
+
+  // 更新 tour 的評價平均分數與筆數
+  await Tour.findByIdAndUpdate(tourId, {
+    ratingsQuantity: stats[0].nRating,
+    ratingsAverage: stats[0].avgRating
+  });
+};
+
+// 在儲存之後執行計算平均評分方法
+reviewSchema.post('save', function() {
+  // 使用 constructor 指向當前 models
+  this.constructor.calcAverageRatings(this.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
