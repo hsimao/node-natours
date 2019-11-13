@@ -70,16 +70,44 @@ reviewSchema.statics.calcAverageRatings = async function(tourId) {
   ]);
 
   // 更新 tour 的評價平均分數與筆數
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRating,
-    ratingsAverage: stats[0].avgRating
-  });
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating
+    });
+  } else {
+    // 無資料時將恢復預設值
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5
+    });
+  }
 };
 
-// 在儲存之後執行計算平均評分方法
+// 新增評論時在儲存後執行計算平均評分方法
 reviewSchema.post('save', function() {
   // 使用 constructor 指向當前 models
   this.constructor.calcAverageRatings(this.tour);
+});
+
+// findByIdAndUpdate
+// findByIdAndDelete
+// 在更新、刪除評價前時觸發, 執行 findOne 方法來取得 tour 相關資訊, 並保存後讓下個 post (已儲存) 階段來取得執行更新
+reviewSchema.pre(/^findOneAnd/, async function(next) {
+  this.r = await this.findOne();
+  next();
+});
+
+// 更新完評論時要更新 tour 的評論平均分數與筆數
+/*
+  因為 更新、刪除的 post 階段無法取得本身資料,
+  因此透過使用 this.findOne() 來取得資料,
+  但因為 post 階段時無法使用 this.findOne(), 因為 query 已經被執行
+  所以需要在儲存前 [pre]上方, 來執行並將 tour 相關資料, 與方法儲存到 [r] 變數內傳遞
+  方可在此調用 calcAverageRatings 方法以及 tour id 來更新
+*/
+reviewSchema.post(/^findOneAnd/, async function() {
+  await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
