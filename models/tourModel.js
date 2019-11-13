@@ -127,6 +127,11 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// 優化資料查詢速度, 新增 index 索引
+// 針對比較多人常搜尋的類型使用 index
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 // virtual 虛擬屬性: 用於不想將資料儲存到資料庫, 可用現有資料來換算出來的資訊, 比較不會佔資料庫儲存空間
 // 應用場景, 以週為單位的行程時間, 直接用現有的 duration 來換算即可
 tourSchema.virtual('durationWeeks').get(function() {

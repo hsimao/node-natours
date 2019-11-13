@@ -79,6 +79,7 @@ exports.getAll = Model =>
       .limitFields()
       .paginate();
 
+    // const doc = await features.query.explain(); // 使用 explain() 可印出詳細資料來檢查 mongo 實際查詢筆數
     const doc = await features.query;
 
     res.status(200).json({
