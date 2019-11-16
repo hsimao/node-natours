@@ -43,6 +43,10 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+// 限制評論: 同一個 tour 與同一位 user 只能新增一次評論
+// 使用 index 設定 unigue 來限制
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 // mongo 中間件
 // 所有搜尋評論的 query 使用 populate 顯示關聯的 user 資料
 reviewSchema.pre(/^find/, function(next) {
