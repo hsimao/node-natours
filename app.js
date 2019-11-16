@@ -71,7 +71,10 @@ const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRouters');
 
 app.get('/', (req, res) => {
-  res.status(200).render('base');
+  res.status(200).render('base', {
+    tour: 'The forest',
+    user: 'Jonas'
+  });
 });
 
 app.use('/api/v1/users', userRouter);
