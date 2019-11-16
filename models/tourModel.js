@@ -197,13 +197,14 @@ tourSchema.post(/^find/, function(docs, next) {
   next();
 });
 
-// aggregate 聚合中間件
-tourSchema.pre('aggregate', function(next) {
-  // 使用 unshift 將以下 match 方法放在 pipeline 最前面
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// 暫時關閉, 因為 會引響計算距離 api 內使用到的 $geoNear 方法, $geoNear方法必須在 pipeline 排序第一個
+// aggregate 聚合中間件: 只顯示 secretTour: true 的資料
+// tourSchema.pre('aggregate', function(next) {
+//   // 使用 unshift 將以下 match 方法放在 pipeline 最前面
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 

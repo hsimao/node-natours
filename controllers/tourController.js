@@ -152,3 +152,49 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     }
   });
 });
+
+// 依據座標中心點算出與每個 tour 之間的距離
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  // 單位轉換 公尺 => 英里 or 公尺 => 公里
+  const multiplier = unit === 'mi' ? 0.000621371192 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitutr and longitude in the format lat, lng.',
+        400
+      )
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      // 依據座標中心點算出每個 tour 的距離
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1]
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier // 單位轉換 公尺 => (英里/公里)
+      }
+    },
+    {
+      // 只顯示距離跟 tour 名稱
+      $project: {
+        distance: 1,
+        name: 1
+      }
+    }
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances
+    }
+  });
+});
