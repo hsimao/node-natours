@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -11,7 +12,12 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // == Global Middlewares 中間件
+app.use(express.static(path.join(__dirname, 'public')));
+
 // 設置安全 HTTP headers
 app.use(helmet());
 
@@ -53,8 +59,6 @@ app.use(
   })
 );
 
-app.use(express.static(`${__dirname}/public`));
-
 // 將每個請求加上時間
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -65,6 +69,10 @@ app.use((req, res, next) => {
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRouters');
+
+app.get('/', (req, res) => {
+  res.status(200).render('base');
+});
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
