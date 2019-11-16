@@ -37,7 +37,9 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1'],
-      max: [5, 'Rating must below 5.0']
+      max: [5, 'Rating must below 5.0'],
+      // 每次儲存時將四捨五入並指取小數 1 位
+      set: val => Math.round(val * 10) / 10
     },
     // 評價數量
     ratingsQuantity: {
