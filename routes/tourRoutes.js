@@ -25,6 +25,19 @@ Router.route('/monthly-plan/:year').get(
   tourController.getMonthlyPlan
 );
 
+// 查詢距離 user 多少距離內的所有 tours
+/*
+  == 兩種 router 設計方法
+  1.) 使用 query string
+  /tours-within?distance=233&center=34.140441,-118.356070&unit=mi
+
+  2.) 使用網址 params 解析
+  /tours-within/233/center/34.140441,-118.356070/unit/mi
+*/
+Router.route('/tours-within/:distance/center/:latlng/unit/:unit').get(
+  tourController.getToursWithin
+);
+
 Router.route('/')
   .get(tourController.getAllTours)
   .post(

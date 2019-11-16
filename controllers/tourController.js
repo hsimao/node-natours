@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
+const AppError = require('./../utils/appError');
 
 // 取得前五個最評價最好的便宜行程 中間件
 exports.aliasTopTours = (req, res, next) => {
@@ -111,6 +112,43 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     results: plan.length,
     data: {
       plan
+    }
+  });
+});
+
+// 搜尋距離自己 xx 內的所有 tours
+// /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-within/233/center/34.140441,-118.356070/unit/mi
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+
+  // 解析座標
+  const [lat, lng] = latlng.split(',');
+
+  // 半徑範圍, 如果單位是 mi 就用英里計算公式, 否則為預設公里為單位計算
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitutr and longitude in the format lat, lng.',
+        400
+      )
+    );
+  }
+
+  // mongo geoJson 地圖搜尋方法
+  // {startLocation: {$geoWithin: { $centerSphere: [ [ -118.35607, 34.140441 ], 0.10275400000000012 ]}}}
+  // 搜尋從 latlng 中心座標 開始計算 distance 的半徑範圍內的座標
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours
     }
   });
 });
