@@ -1,6 +1,16 @@
 extends base
 include _reviewCard
 
+//- 在 base 模板上的 head 最後引入
+block append head
+  //- 引入 mapbox 插件相關資源
+  script(src='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js')
+  link(rel="stylesheet", href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css')
+
+//- 在 footer 模板上的 block 最後引入
+block append footer
+  script(src='/js/mapbox.js')
+
 mixin overviewBox(label, text, icon)
   .overview-box__detail
     svg.overview-box__icon
@@ -66,7 +76,7 @@ block content
         img.picture-box__img(src=`/img/tours/${image}`, alt=`The Park Camper Tour ${i + 1}`, class=`picture-box__img--${i + 1}`)
 
   section.section-map
-    #map
+    #map(data-locations=`${JSON.stringify(tour.locations)}`)
 
   // tour 評價區塊
   section.section-reviews
