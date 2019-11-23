@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -38,6 +39,9 @@ app.use('/api', limiter);
 // 解析 body parser, 設置限制請求 body 不可大於 10kb
 app.use(express.json({ limit: '10kb' }));
 
+// 解析 cookie
+app.use(cookieParser());
+
 // 數據清理, 防止惡意 nosql query 注入, 例如 	"email": { "$gt": "" }
 app.use(mongoSanitize());
 
@@ -62,6 +66,7 @@ app.use(
 // 將每個請求加上時間
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  console.log('cookie', req.cookies);
   next();
 });
 

@@ -78,13 +78,17 @@ exports.login = catchAsync(async (req, res, next) => {
 
 // 驗證權限中間件, 保護需要登入才能查看的 route
 exports.protect = catchAsync(async (req, res, next) => {
-  // 1.)  取得 token, 從 headers
+  // 1.)  取得 token
   let token;
+  // 從 headers 取得 token
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+    // 如果 headers 沒有 token, 改從 cookies.jwt 取得
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token)
