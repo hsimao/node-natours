@@ -1,12 +1,13 @@
 /* eslint-disable */
 import '@babel/polyfill';
 import { displayMap } from './mapbox';
-import { login } from './login';
+import { login, logout } from './login';
 
 // DOM ELements
 const mapBox = document.getElementById('map');
 const inputEmail = document.getElementById('email');
 const loginForm = document.querySelector('.form');
+const logOutBtn = document.querySelector('.nav__el--logout');
 
 if (mapBox) {
   const locations = JSON.parse(mapBox.dataset.locations);
@@ -25,3 +26,5 @@ function handleLoginSubmit() {
 }
 
 if (loginForm) handleLoginSubmit();
+
+if (logOutBtn) logOutBtn.addEventListener('click', logout);
