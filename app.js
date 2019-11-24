@@ -66,7 +66,6 @@ app.use(
 // 將每個請求加上時間
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  console.log('cookie', req.cookies);
   next();
 });
 

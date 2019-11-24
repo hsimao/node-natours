@@ -24,6 +24,7 @@ const createSendToken = (user, statusCode, res) => {
     httpOnly: true
   };
 
+  // ookieOptions.secure = true, 在 prod 環境下僅能通過安全連接 https 發送 cookie
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
