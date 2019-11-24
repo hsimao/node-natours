@@ -24,6 +24,7 @@ const createSendToken = (user, statusCode, res) => {
     httpOnly: true
   };
 
+  // ookieOptions.secure = true, 在 prod 環境下僅能通過安全連接 https 發送 cookie
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
@@ -76,15 +77,48 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+// 判斷是否有登入中間件
+// 只在 rendered pages 時使用, 並且不會有 error, 任何 error 都直接 next
+// 如果有登入將會把 user 資料儲存到 req.locals.user, pug 樣板渲染時可直接使用 user 取得資料
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // 驗證 token, 取出解碼完的 user id
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // 檢查用戶是否存在, token 有效的這段期間, 如果用戶從資料庫已刪除, 將判斷未登入, 直接 return next
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) return next();
+
+      // 檢查用戶是否有改密碼, 在當前 token 產生之後, 將判斷未登入, 直接 return next
+      if (currentUser.changedPasswordAfter(decoded.iat)) return next();
+
+      // 將 user 資料儲存到 req.locals.user, 後續 render pug 樣板可直接取得 user
+      res.locals.user = currentUser;
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+};
+
 // 驗證權限中間件, 保護需要登入才能查看的 route
 exports.protect = catchAsync(async (req, res, next) => {
-  // 1.)  取得 token, 從 headers
+  // 1.)  取得 token
   let token;
+  // 從 headers 取得 token
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+    // 如果 headers 沒有 token, 改從 cookies.jwt 取得
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token)
@@ -113,10 +147,21 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 永許用戶訪問受保護 route
+  // 允許用戶訪問受保護 route
   req.user = currentUser;
   next();
 });
+
+// logout 將 jwt cookie 清除, 將原本 token 覆蓋
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    // 10 秒後過期
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true
+  });
+
+  res.status(200).json({ status: 'success' });
+};
 
 // 驗證權限身份, 當下登入者身份 role 如未符合 roles 傳遞進來的身份, 將返回
 exports.restrictTo = (...roles) => {

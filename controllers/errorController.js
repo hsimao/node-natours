@@ -22,33 +22,58 @@ const handleValidationErrorDB = err => {
   return new AppError(message, 400);
 };
 
-const sendErrorDev = (err, res) => {
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-    stack: err.stack,
-    error: err
+const sendErrorDev = (err, req, res) => {
+  // 判斷是 api route 還是 render page route
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+      stack: err.stack,
+      error: err
+    });
+  }
+  // 不是 api route error, 顯示 error 樣板
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong!',
+    msg: err.message
   });
 };
 
-const sendErrorProd = (err, res) => {
-  // 如果是線上環境, 且錯誤不是 操作錯誤, 沒有跑到自訂封裝的 error handle
-  // 就回傳通用 error message 給用戶端, 不傳遞詳細訊息給用戶端
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message
-    });
-  } else {
+// 如果是線上環境 error handle
+const sendErrorProd = (err, req, res) => {
+  // 判斷是 api route 還是 render page route
+  if (req.originalUrl.startsWith('/api')) {
+    // 操作錯誤, 且是已知有處理過的 error message
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message
+      });
+    }
     // 讓部屬環境紀錄 log error
     console.error('ERROR', err);
 
-    // 通用錯誤訊息
-    res.status(500).json({
+    // 未知錯誤, 顯示通用錯誤訊息
+    return res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!'
     });
   }
+
+  // 不是 api route error, 顯示 error 樣板
+  // 操作錯誤, 且是已知有處理過的 error message
+  if (err.isOperational) {
+    return res.status(err.statusCode).render('error', {
+      title: 'Something went wrong!',
+      msg: err.message
+    });
+  }
+
+  // 未知錯誤, 顯示通用錯誤訊息
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong!',
+    msg: 'Please try again later.'
+  });
 };
 
 // express error 中間件
@@ -57,11 +82,13 @@ module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
+  // console.log('err', err);
+
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+    sendErrorDev(err, req, res);
   } else {
     let error = { ...err };
-
+    error.message = err.message; // fix 上面解構無法正常將 message copy 到 error
     // handle mongoDB error
     // 無效 id
     if (error.name === 'CastError') error = handleCastErrorDB(error);
@@ -71,6 +98,6 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
 
-    sendErrorProd(error, res);
+    sendErrorProd(error, req, res);
   }
 };

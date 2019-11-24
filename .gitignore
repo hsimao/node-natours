@@ -90,3 +90,6 @@ pm2-cluster-sample.json
 pm2-fork-sample.json
 
 .vscode
+
+/public/js/bundle.js
+/public/js/bundle.js.map

@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -5,13 +6,19 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // == Global Middlewares 中間件
+app.use(express.static(path.join(__dirname, 'public')));
+
 // 設置安全 HTTP headers
 app.use(helmet());
 
@@ -31,6 +38,9 @@ app.use('/api', limiter);
 
 // 解析 body parser, 設置限制請求 body 不可大於 10kb
 app.use(express.json({ limit: '10kb' }));
+
+// 解析 cookie
+app.use(cookieParser());
 
 // 數據清理, 防止惡意 nosql query 注入, 例如 	"email": { "$gt": "" }
 app.use(mongoSanitize());
@@ -53,8 +63,6 @@ app.use(
   })
 );
 
-app.use(express.static(`${__dirname}/public`));
-
 // 將每個請求加上時間
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -62,10 +70,12 @@ app.use((req, res, next) => {
 });
 
 // Routes
+const viewRouter = require('./routes/viewRoutes');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRouters');
 
+app.use('/', viewRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/reviews', reviewRouter);
