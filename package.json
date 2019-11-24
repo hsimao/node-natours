@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=production nodemon server.js",
+    "start": "NODE_ENV=production node server.js",
     "dev": "NODE_ENV=development nodemon server.js",
     "db_delete": "node ./dev-data/data/import-dev-data.js --delete",
     "db_import": "node ./dev-data/data/import-dev-data.js --import",
