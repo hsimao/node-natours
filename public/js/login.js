@@ -3,10 +3,11 @@ import axios from 'axios';
 import { showAlert } from './alerts';
 
 export const login = async (email, password) => {
+  console.log('axios.defaults.baseURL');
   try {
     const res = await axios({
       method: 'post',
-      url: 'http://localhost:3000/api/v1/users/login',
+      url: 'api/v1/users/login',
       data: {
         email,
         password
@@ -28,7 +29,7 @@ export const logout = async () => {
   try {
     const res = await axios({
       method: 'get',
-      url: 'http://localhost:3000/api/v1/users/logout'
+      url: 'api/v1/users/logout'
     });
 
     // 如果成功, 將頁面刷新: 設置 true 將強制瀏覽器從服務器重新獲取當前頁面資源，而不是從瀏覽器的緩存中讀取
