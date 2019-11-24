@@ -13,8 +13,14 @@ function login(email, password) {
   })
     .then(res => {
       console.log(res);
+      if (res.data.status === 'success') {
+        alert('Logged in successfully!');
+        window.setTimeout(() => {
+          location.assign('/');
+        }, 1500);
+      }
     })
-    .catch(err => console.log(err.response.data));
+    .catch(err => alert(err.response.data.message));
 }
 
 function handleLoginSubmit() {
