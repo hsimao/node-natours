@@ -5,12 +5,13 @@ const authController = require('../controllers/authController');
 const Router = express.Router();
 
 // 在所有 render 頁面路由底下套用 isLoggedIn 中間件, 如有登入將可取得 user 資料
-Router.use(authController.isLoggedIn);
-
-Router.get('/', viewController.getOverview);
-Router.get('/tour/:slug', viewController.getTour);
+Router.get('/', authController.isLoggedIn, viewController.getOverview);
+Router.get('/tour/:slug', authController.isLoggedIn, viewController.getTour);
 
 // login
-Router.get('/login', viewController.getLoginForm);
+Router.get('/login', authController.isLoggedIn, viewController.getLoginForm);
+
+// 個人頁面 account, 此頁沒登入將不能訪問, 所以改用 protect 中間件邏輯
+Router.get('/me', authController.protect, viewController.getAccount);
 
 module.exports = Router;
