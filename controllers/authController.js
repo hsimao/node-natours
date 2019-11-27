@@ -149,6 +149,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // 允許用戶訪問受保護 route
   req.user = currentUser;
+  // 將 user 資料儲存到 req.locals.user, 後續 render pug 樣板可直接取得 user
+  res.locals.user = currentUser;
   next();
 });
 
