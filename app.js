@@ -38,6 +38,7 @@ app.use('/api', limiter);
 
 // 解析 body parser, 設置限制請求 body 不可大於 10kb
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 解析 cookie
 app.use(cookieParser());
