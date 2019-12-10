@@ -8835,7 +8835,7 @@ if (logOutBtn) logOutBtn.addEventListener('click', _login.logout);
 
 if (userDataForm) {
   userDataForm.addEventListener('submit', function _callee(e) {
-    var name, email;
+    var form, name, email, photo;
     return regeneratorRuntime.async(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -8850,18 +8850,20 @@ if (userDataForm) {
           case 2:
             e.preventDefault();
             apiActive = true;
+            form = new FormData();
             name = document.getElementById('name').value;
             email = document.getElementById('email').value;
-            _context.next = 8;
-            return regeneratorRuntime.awrap((0, _updateSettings.updateSettings)({
-              name: name,
-              email: email
-            }, 'data'));
+            photo = document.getElementById('photo').files[0];
+            form.append('name', name);
+            form.append('email', email);
+            form.append('photo', photo);
+            _context.next = 13;
+            return regeneratorRuntime.awrap((0, _updateSettings.updateSettings)(form, 'data'));
 
-          case 8:
+          case 13:
             apiActive = false;
 
-          case 9:
+          case 14:
           case "end":
             return _context.stop();
         }
@@ -8941,7 +8943,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59566" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49493" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
