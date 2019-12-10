@@ -10,8 +10,8 @@
     "db_delete": "node ./dev-data/data/import-dev-data.js --delete",
     "db_import": "node ./dev-data/data/import-dev-data.js --import",
     "debug": "ndb server.js",
-    "watch:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
-    "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js"
+    "watch:js": "parcel watch ./public/js/index.js --out-dir ./public --out-file bundle.js",
+    "build:js": "parcel watch ./public/js/index.js --out-dir ./public --out-file bundle.js"
   },
   "author": "Mars",
   "license": "ISC",
