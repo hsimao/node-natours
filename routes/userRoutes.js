@@ -15,7 +15,12 @@ Router.use(authController.protect);
 
 Router.patch('/updateMyPassword', authController.updatePassword);
 Router.get('/me', userController.getMe, userController.getUser);
-Router.patch('/updateMe', userController.updateMe);
+Router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
+);
 Router.delete('/deleteMe', userController.deleteMe);
 
 // 在此中間件以下的 route 身份需要是 admin

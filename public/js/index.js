@@ -39,10 +39,16 @@ if (userDataForm) {
     if (apiActive) return;
     e.preventDefault();
     apiActive = true;
+
+    const form = new FormData();
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
+    const photo = document.getElementById('photo').files[0];
+    form.append('name', name);
+    form.append('email', email);
+    form.append('photo', photo);
 
-    await updateSettings({ name, email }, 'data');
+    await updateSettings(form, 'data');
     apiActive = false;
   });
 }
