@@ -1,7 +1,97 @@
+const fs = require('fs');
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 const AppError = require('./../utils/appError');
+
+// 刪除本地 tours 圖片
+const removeImage = async (Model, id, type, index) => {
+  const tour = await Model.findById(id);
+  if (!tour || !tour[type]) return;
+
+  if (type === 'images' && tour[type][index]) {
+    fs.unlinkSync(`public/img/tours/${tour[type][index]}`);
+  }
+  if (type === 'imageCover') {
+    fs.unlinkSync(`public/img/tours/${tour[type]}`);
+  }
+};
+
+// setting multer memory storage 儲存到記憶體
+const multerStorage = multer.memoryStorage();
+
+// setting multer filter, 只允許 image 檔案格式
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image! Please upload only images.', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter
+});
+
+// 上傳圖片中間件, 多張設置
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 }
+]);
+
+// upload.single('image') req.file
+// upload.array('images', 5) req.files
+
+// 圖片尺寸調整中間件, 調整成橫式
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  // Cover image
+  if (req.files.imageCover) {
+    // 先將本地圖片刪除
+    await removeImage(Tour, req.params.id, 'imageCover');
+
+    // 將圖片路徑儲存到 body.imageCover, 後續將可更新到資料庫
+    req.body.imageCover = `tour-${req.params.id}-cover-${Date.now()}.jpeg`;
+
+    // 重新裁切圖片大小
+    await sharp(req.files.imageCover[0].buffer)
+      // 將照片裁切成3/2比例, 1000px(寬) 666px(高)
+      .resize(1000, 666)
+      .toFormat('jpeg')
+      .jpeg({ quality: 90 })
+      // 圖片儲存位置
+      .toFile(`public/img/tours/${req.body.imageCover}`);
+  }
+
+  // Images
+  if (req.files.images) {
+    req.body.images = [];
+
+    // 使用 promise.all 強制等待所有 map 迴圈執行完後才執行 next()
+    await Promise.all(
+      req.files.images.map(async (file, i) => {
+        const filename = `tour-${req.params.id}-image-${i +
+          1}-${Date.now()}.jpeg`;
+
+        // 先將本地圖片刪除
+        await removeImage(Tour, req.params.id, 'images', i);
+
+        // 重新裁切圖片大小
+        await sharp(file.buffer)
+          .resize(1000, 666)
+          .toFormat('jpeg')
+          .jpeg({ quality: 90 })
+          .toFile(`public/img/tours/${filename}`);
+
+        req.body.images.push(filename);
+      })
+    );
+  }
+
+  next();
+});
 
 // 取得前五個最評價最好的便宜行程 中間件
 exports.aliasTopTours = (req, res, next) => {
