@@ -16,7 +16,13 @@ module.exports = class Email {
   newTransport() {
     // 如果是 prod 環境, 使用 Sendgrid
     if (process.env.NODE_ENV === 'production') {
-      return 1;
+      return nodemailer.createTransport({
+        service: 'SendGrid',
+        auth: {
+          user: process.env.SENDGRID_USERNAME,
+          pass: process.env.SENDGRID_PASSWORD
+        }
+      });
     }
 
     // 非正式環境, 使用 mailtrap 服務攔截 email 測試用
