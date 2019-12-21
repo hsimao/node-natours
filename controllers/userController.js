@@ -37,11 +37,11 @@ const upload = multer({
   fileFilter: multerFilter
 });
 
-// 上傳圖片中間件
+// 上傳圖片中間件, 單張
 exports.uploadUserPhoto = upload.single('photo');
 
 // 圖片尺寸調整中間件, 調整成正方形
-exports.resizeUserPhoto = (req, res, next) => {
+exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
 
   // user-用戶ID-上傳時間搓.檔案格式
@@ -49,7 +49,7 @@ exports.resizeUserPhoto = (req, res, next) => {
   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
 
   // 使用 sharp 重新裁切圖片大小
-  sharp(req.file.buffer)
+  await sharp(req.file.buffer)
     // 將照片裁切成 500px(寬) 500px(高)
     .resize(500, 500)
     .toFormat('jpeg')
@@ -58,7 +58,7 @@ exports.resizeUserPhoto = (req, res, next) => {
     .toFile(`public/img/users/${req.file.filename}`);
 
   next();
-};
+});
 
 // 過濾物件參數, 只回傳允許的參數 [...allowedFields]
 const filterObj = (obj, ...allowedFields) => {
