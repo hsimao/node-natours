@@ -8411,7 +8411,7 @@ var login = function login(email, password) {
           _context.next = 4;
           return regeneratorRuntime.awrap((0, _axios.default)({
             method: 'post',
-            url: 'api/v1/users/login',
+            url: '/api/v1/users/login',
             data: {
               email: email,
               password: password
@@ -8456,7 +8456,7 @@ var logout = function logout() {
           _context2.next = 3;
           return regeneratorRuntime.awrap((0, _axios.default)({
             method: 'get',
-            url: 'api/v1/users/logout'
+            url: '/api/v1/users/logout'
           }));
 
         case 3:
@@ -8507,7 +8507,7 @@ var updateSettings = function updateSettings(data, type) {
           _context.next = 4;
           return regeneratorRuntime.awrap((0, _axios.default)({
             method: 'patch',
-            url: "api/v1/users/".concat(url),
+            url: "/api/v1/users/".concat(url),
             data: data
           }));
 
@@ -8943,7 +8943,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61509" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55257" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

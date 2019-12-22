@@ -9,7 +9,7 @@ export const updateSettings = async (data, type) => {
 
     const res = await axios({
       method: 'patch',
-      url: `api/v1/users/${url}`,
+      url: `/api/v1/users/${url}`,
       data
     });
 

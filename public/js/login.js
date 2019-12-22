@@ -7,7 +7,7 @@ export const login = async (email, password) => {
   try {
     const res = await axios({
       method: 'post',
-      url: 'api/v1/users/login',
+      url: '/api/v1/users/login',
       data: {
         email,
         password
@@ -29,7 +29,7 @@ export const logout = async () => {
   try {
     const res = await axios({
       method: 'get',
-      url: 'api/v1/users/logout'
+      url: '/api/v1/users/logout'
     });
 
     // 如果成功, 將頁面刷新: 設置 true 將強制瀏覽器從服務器重新獲取當前頁面資源，而不是從瀏覽器的緩存中讀取
