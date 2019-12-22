@@ -3,6 +3,7 @@ const Tour = require('./../models/tourModel');
 const Booking = require('./../models/bookingModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
 
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 取得當前 booked tour
@@ -52,3 +53,9 @@ exports.createBookingCheckout = catchAsync(async (req, res, next) => {
   // https://natours-tour.herokuapp.com/?tour=xxxx&user=xxxx&price=xxx => https://natours-tour.herokuapp.com/
   res.redirect(req.originalUrl.split('?')[0]);
 });
+
+exports.createBooking = factory.createOne(Booking);
+exports.getBooking = factory.getOne(Booking);
+exports.getAllBooking = factory.getAll(Booking);
+exports.updateBooking = factory.updateOne(Booking);
+exports.deleteBooking = factory.deleteOne(Booking);
