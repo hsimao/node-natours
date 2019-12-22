@@ -74,11 +74,13 @@ app.use((req, res, next) => {
 const viewRouter = require('./routes/viewRoutes');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-const reviewRouter = require('./routes/reviewRouters');
+const bookingRouter = require('./routes/bookingRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 
 app.use('/', viewRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/booking', bookingRouter);
 app.use('/api/v1/reviews', reviewRouter);
 
 // 未定義 route handle
