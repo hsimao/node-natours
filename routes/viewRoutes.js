@@ -21,4 +21,7 @@ Router.get('/login', authController.isLoggedIn, viewController.getLoginForm);
 // 個人頁面 account, 此頁沒登入將不能訪問, 所以改用 protect 中間件邏輯
 Router.get('/me', authController.protect, viewController.getAccount);
 
+// 個人已預約 tours 頁面
+Router.get('/my-tours', authController.protect, viewController.getMyTours);
+
 module.exports = Router;

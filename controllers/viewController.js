@@ -1,5 +1,6 @@
 const Tour = require('../models/tourModel');
 const User = require('../models/userModel');
+const Booking = require('../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -41,3 +42,20 @@ exports.getAccount = (req, res) => {
     title: `${req.user.name} Account`
   });
 };
+
+// 個人已預訂的所有 tours 頁面
+exports.getMyTours = catchAsync(async (req, res, next) => {
+  // 1.) Find all bookings, 找到自己所有的 booking 資料
+  const bookings = await Booking.find({ user: req.user.id });
+
+  // 2.) Find tours with the retured Ids, 將 booking 整理成一包 tourIDs 陣列
+  const tourIDs = bookings.map(item => item.tour);
+
+  // 使用 tourIDs 陣列搜出所有 tours
+  const tours = await Tour.find({ _id: { $in: tourIDs } });
+
+  res.status(200).render('overview', {
+    title: 'My Tours',
+    tours
+  });
+});
